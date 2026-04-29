@@ -1,9 +1,9 @@
 ﻿# ========================================================================================================================
-# CONG CU SUA CHUA WINDOWS TOAN DIEN (TU DONG QUA WINRE) - BAN TOI UU KET HOP LOGIC V12
+# CONG CU SUA CHUA WINDOWS TOAN DIEN (TU DONG QUA WINRE) - BAN TOI UU KET HOP LOGIC V12 (FIX HANG DISM)
 # ========================================================================================================================
 
 # Thiet lap giao dien dang ngang
-$Host.UI.RawUI.WindowTitle = "Cong Cu Sua Chua Windows Toan Dien (Tu Dong Qua WinRE) - V2.1"
+$Host.UI.RawUI.WindowTitle = "Cong Cu Sua Chua Windows Toan Dien (Tu Dong Qua WinRE) - V2.2"
 $Host.UI.RawUI.BackgroundColor = "Black"
 $Host.UI.RawUI.ForegroundColor = "Cyan"
 Clear-Host
@@ -70,7 +70,7 @@ if (-not (Test-Path $WinREGoc)) {
 
 Write-Host "[*] BUOC 2: Chuan bi moi truong an toan (Tranh khoa file)..." -ForegroundColor Yellow
 if (Test-Path $MountDir) { 
-    dism.exe /Unmount-Image /MountDir:$MountDir /Discard | Out-Null
+    & dism.exe /Unmount-Image /MountDir:"$MountDir" /Discard | Out-Null
     Remove-Item -Recurse -Force $MountDir 
 }
 New-Item -ItemType Directory -Path $MountDir | Out-Null
@@ -79,17 +79,19 @@ Copy-Item $WinREGoc $WinRECopy -Force
 Set-ItemProperty $WinRECopy IsReadOnly $false
 
 Write-Host "[*] BUOC 3: Dang giai nen (Mount) ban sao cua WinRE..." -ForegroundColor Yellow
-$dismMount = Start-Process -FilePath "dism.exe" -ArgumentList "/Mount-Image /ImageFile:`"$WinRECopy`" /Index:1 /MountDir:`"$MountDir`"" -Wait -NoNewWindow -PassThru
-if ($dismMount.ExitCode -ne 0) {
+# Fix loi treo PowerShell bang cach goi truc tiep DISM thay vi dung Start-Process
+& dism.exe /Mount-Image /ImageFile:"$WinRECopy" /Index:1 /MountDir:"$MountDir"
+if ($LASTEXITCODE -ne 0) {
     Write-Host "[X] Loi khi mount winre.wim!" -ForegroundColor Red
-    dism /Cleanup-Wim | Out-Null
+    & dism.exe /Cleanup-Wim | Out-Null
+    Read-Host "Nhan Enter de thoat..."
     Exit
 }
 
 # ========================================================================================================================
 # 4. NHUNG KICH BAN SUA CHUA VAO WINRE
 # ========================================================================================================================
-Write-Host "[*] BUOC 4: Dang ghi kịch bản tự động hóa (SFC & DISM)..." -ForegroundColor Yellow
+Write-Host "`n[*] BUOC 4: Dang ghi kich ban tu dong hoa (SFC & DISM)..." -ForegroundColor Yellow
 
 $autoScriptPath = "$MountDir\Windows\System32\AutoRepair_WinRE.cmd"
 $winpeShlPath = "$MountDir\Windows\System32\winpeshl.ini"
@@ -135,7 +137,8 @@ $winpeShlContent | Out-File -FilePath $winpeShlPath -Encoding ascii -Force
 # 5. DONG GOI VA KHOI DONG
 # ========================================================================================================================
 Write-Host "[*] BUOC 5: Dang dong goi (Commit) WinRE..." -ForegroundColor Yellow
-Start-Process -FilePath "dism.exe" -ArgumentList "/Unmount-Image /MountDir:`"$MountDir`" /Commit" -Wait -NoNewWindow | Out-Null
+# Fix loi treo khi Unmount
+& dism.exe /Unmount-Image /MountDir:"$MountDir" /Commit | Out-Null
 Start-Sleep -Seconds 2
 
 Write-Host "[*] BUOC 6: Nap lai vao he thong va thiet lap boot..." -ForegroundColor Yellow
