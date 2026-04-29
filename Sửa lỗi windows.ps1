@@ -1,9 +1,9 @@
 # ========================================================================================================================
-# CONG CU SUA CHUA WINDOWS TOAN DIEN (TU DONG QUA WINRE) - BAN TOI UU KET HOP LOGIC V12 (FIX HANG DISM)
+# CONG CU SUA CHUA WINDOWS TOAN DIEN (TU DONG QUA WINRE) - BAN TOI UU KET HOP LOGIC V12 (FIX ENCODING)
 # ========================================================================================================================
 
 # Thiet lap giao dien dang ngang
-$Host.UI.RawUI.WindowTitle = "Cong Cu Sua Chua Windows Toan Dien (Tu Dong Qua WinRE) - V2.2"
+$Host.UI.RawUI.WindowTitle = "Cong Cu Sua Chua Windows Toan Dien (Tu Dong Qua WinRE) - V2.3"
 $Host.UI.RawUI.BackgroundColor = "Black"
 $Host.UI.RawUI.ForegroundColor = "Cyan"
 Clear-Host
@@ -39,8 +39,8 @@ Write-Host ""
 # 2. XAC NHAN BAT DAU TU NGUOI DUNG
 # ========================================================================================================================
 Add-Type -AssemblyName System.Windows.Forms
-$BatDauText = "Công cụ sẽ tiến hành thu hồi, nạp lại WinRE và nhúng lệnh sửa chữa tự động (SFC & DISM).`n`nBạn có chắc chắn muốn bắt đầu thực hiện ngay bây giờ không?"
-$BatDauTieuDe = "Xác nhận bắt đầu"
+$BatDauText = "Cong cu se tien hanh thu hoi, nap lai WinRE va nhung lenh sua chua tu dong (SFC va DISM).`n`nBan co chac chan muon bat dau thuc hien ngay bay gio khong?"
+$BatDauTieuDe = "Xac nhan bat dau"
 $LuaChonBatDau = [System.Windows.Forms.MessageBox]::Show($BatDauText, $BatDauTieuDe, "YesNo", "Question")
 
 if ($LuaChonBatDau -ne "Yes") {
@@ -56,7 +56,7 @@ $WinREGoc = "C:\Windows\System32\Recovery\winre.wim"
 $WinRECopy = "C:\winre_xu-ly.wim"
 $MountDir = "C:\MountRE"
 
-Write-Host "[*] BUOC 1: Ép he thong nap va thu hoi file WinRE goc..." -ForegroundColor Yellow
+Write-Host "[*] BUOC 1: Ep he thong nap va thu hoi file WinRE goc..." -ForegroundColor Yellow
 reagentc.exe /enable | Out-Null
 Start-Sleep -Seconds 2
 reagentc.exe /disable | Out-Null
@@ -79,7 +79,6 @@ Copy-Item $WinREGoc $WinRECopy -Force
 Set-ItemProperty $WinRECopy IsReadOnly $false
 
 Write-Host "[*] BUOC 3: Dang giai nen (Mount) ban sao cua WinRE..." -ForegroundColor Yellow
-# Fix loi treo PowerShell bang cach goi truc tiep DISM thay vi dung Start-Process
 & dism.exe /Mount-Image /ImageFile:"$WinRECopy" /Index:1 /MountDir:"$MountDir"
 if ($LASTEXITCODE -ne 0) {
     Write-Host "[X] Loi khi mount winre.wim!" -ForegroundColor Red
@@ -91,7 +90,7 @@ if ($LASTEXITCODE -ne 0) {
 # ========================================================================================================================
 # 4. NHUNG KICH BAN SUA CHUA VAO WINRE
 # ========================================================================================================================
-Write-Host "`n[*] BUOC 4: Dang ghi kich ban tu dong hoa (SFC & DISM)..." -ForegroundColor Yellow
+Write-Host "`n[*] BUOC 4: Dang ghi kich ban tu dong hoa (SFC va DISM)..." -ForegroundColor Yellow
 
 $autoScriptPath = "$MountDir\Windows\System32\AutoRepair_WinRE.cmd"
 $winpeShlPath = "$MountDir\Windows\System32\winpeshl.ini"
@@ -137,7 +136,6 @@ $winpeShlContent | Out-File -FilePath $winpeShlPath -Encoding ascii -Force
 # 5. DONG GOI VA KHOI DONG
 # ========================================================================================================================
 Write-Host "[*] BUOC 5: Dang dong goi (Commit) WinRE..." -ForegroundColor Yellow
-# Fix loi treo khi Unmount
 & dism.exe /Unmount-Image /MountDir:"$MountDir" /Commit | Out-Null
 Start-Sleep -Seconds 2
 
@@ -155,8 +153,8 @@ Write-Host "                                    HOAN TAT THIET LAP! DANG CHO XAC
 Write-Host "========================================================================================================================" -ForegroundColor Green
 
 # Hien thi bang thong bao GUI de xac nhan sau khi hoan thanh
-$ThongBaoText = "Môi trường thiết lập ban đầu đã đầy đủ.`n`nBạn có muốn khởi động máy tính ngay bây giờ để tiến hành sửa chữa hay không?"
-$ThongBaoTieuDe = "Xác nhận khởi động"
+$ThongBaoText = "Moi truong thiet lap ban dau da day du.`n`nBan co muon khoi dong may tinh ngay bay gio de tien hanh sua chua hay khong?"
+$ThongBaoTieuDe = "Xac nhan khoi dong"
 $KetQuaLuaChon = [System.Windows.Forms.MessageBox]::Show($ThongBaoText, $ThongBaoTieuDe, "YesNo", "Question")
 
 if ($KetQuaLuaChon -eq "Yes") {
