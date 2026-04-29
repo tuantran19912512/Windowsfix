@@ -3,7 +3,7 @@
 # ========================================================================================================================
 
 # Thiet lap giao dien dang ngang
-$Host.UI.RawUI.WindowTitle = "Cong Cu Sua Chua Windows Toan Dien (Tu Dong Qua WinRE) - V2"
+$Host.UI.RawUI.WindowTitle = "Cong Cu Sua Chua Windows Toan Dien (Tu Dong Qua WinRE) - V2.1"
 $Host.UI.RawUI.BackgroundColor = "Black"
 $Host.UI.RawUI.ForegroundColor = "Cyan"
 Clear-Host
@@ -36,7 +36,21 @@ Write-Host "[OK] Thu vien he thong day du." -ForegroundColor Green
 Write-Host ""
 
 # ========================================================================================================================
-# 2. XU LY VA KHOI PHUC WINRE
+# 2. XAC NHAN BAT DAU TU NGUOI DUNG
+# ========================================================================================================================
+Add-Type -AssemblyName System.Windows.Forms
+$BatDauText = "Công cụ sẽ tiến hành thu hồi, nạp lại WinRE và nhúng lệnh sửa chữa tự động (SFC & DISM).`n`nBạn có chắc chắn muốn bắt đầu thực hiện ngay bây giờ không?"
+$BatDauTieuDe = "Xác nhận bắt đầu"
+$LuaChonBatDau = [System.Windows.Forms.MessageBox]::Show($BatDauText, $BatDauTieuDe, "YesNo", "Question")
+
+if ($LuaChonBatDau -ne "Yes") {
+    Write-Host "[OK] Da huy thao tac theo yeu cau. Dang thoat chuong trinh..." -ForegroundColor Yellow
+    Start-Sleep -Seconds 3
+    Exit
+}
+
+# ========================================================================================================================
+# 3. XU LY VA KHOI PHUC WINRE
 # ========================================================================================================================
 $WinREGoc = "C:\Windows\System32\Recovery\winre.wim"
 $WinRECopy = "C:\winre_xu-ly.wim"
@@ -73,7 +87,7 @@ if ($dismMount.ExitCode -ne 0) {
 }
 
 # ========================================================================================================================
-# 3. NHUNG KICH BAN SUA CHUA VAO WINRE
+# 4. NHUNG KICH BAN SUA CHUA VAO WINRE
 # ========================================================================================================================
 Write-Host "[*] BUOC 4: Dang ghi kịch bản tự động hóa (SFC & DISM)..." -ForegroundColor Yellow
 
@@ -118,7 +132,7 @@ X:\Windows\System32\AutoRepair_WinRE.cmd
 $winpeShlContent | Out-File -FilePath $winpeShlPath -Encoding ascii -Force
 
 # ========================================================================================================================
-# 4. DONG GOI VA KHOI DONG
+# 5. DONG GOI VA KHOI DONG
 # ========================================================================================================================
 Write-Host "[*] BUOC 5: Dang dong goi (Commit) WinRE..." -ForegroundColor Yellow
 Start-Process -FilePath "dism.exe" -ArgumentList "/Unmount-Image /MountDir:`"$MountDir`" /Commit" -Wait -NoNewWindow | Out-Null
@@ -137,13 +151,11 @@ Write-Host "====================================================================
 Write-Host "                                    HOAN TAT THIET LAP! DANG CHO XAC NHAN...                                            " -ForegroundColor Green
 Write-Host "========================================================================================================================" -ForegroundColor Green
 
-# Hien thi bang thong bao GUI de xac nhan (Dang Yes/No)
-Add-Type -AssemblyName System.Windows.Forms
+# Hien thi bang thong bao GUI de xac nhan sau khi hoan thanh
 $ThongBaoText = "Môi trường thiết lập ban đầu đã đầy đủ.`n`nBạn có muốn khởi động máy tính ngay bây giờ để tiến hành sửa chữa hay không?"
 $ThongBaoTieuDe = "Xác nhận khởi động"
 $KetQuaLuaChon = [System.Windows.Forms.MessageBox]::Show($ThongBaoText, $ThongBaoTieuDe, "YesNo", "Question")
 
-# Xu ly lua chon cua nguoi dung
 if ($KetQuaLuaChon -eq "Yes") {
     Write-Host "Dang tien hanh khoi dong lai..." -ForegroundColor Cyan
     Restart-Computer -Force
